@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app" class="container mx-auto py-8">
+        <!-- Header -->
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">{{ message }}</h1>
+        <h2 class="text-lg text-gray-600 mb-6">{{ data }}</h2>
+
+        <!-- Controls -->
+        <div class="flex flex-wrap items-end gap-4 mb-6">
+            <div class="flex flex-col">
+                <label class="text-sm text-gray-700 mb-1">Token</label>
+                <input
+                    type="text"
+                    v-model="token"
+                    placeholder="Input Token"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+            <div class="flex flex-col">
+                <label class="text-sm text-gray-700 mb-1">Date</label>
+                <input
+                    type="date"
+                    v-model="date"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            </div>
+            <button
+                @click="loaddate"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+                Load Data
+            </button>
+            <button
+                @click="checkawal"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+                Check Data
+            </button>
+            <button
+                @click="showdata"
+                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+            >
+                Tampilkan Data
+            </button>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-gray-100 p-4 rounded-lg mb-6 text-gray-800">
+            <h3 class="text-lg font-semibold mb-2">How to Use This App</h3>
+            <ol class="list-decimal list-inside space-y-1 mb-4">
+                <li>Input your Token in the “Input Token” field.</li>
+                <li>Pick the desired date using the “Input Date” date-picker.</li>
+                <li>Click the <strong class="text-blue-700">“Load Data”</strong> button and wait until you see the notification that data has been inserted.</li>
+                <li>Finally, click the <strong class="text-green-700">“Check Data”</strong> button to proceed.</li>
+            </ol>
+            <h3 class="text-lg font-semibold mb-2">How to Show List Data</h3>
+            <ol class="list-decimal list-inside space-y-1">
+                <li>Input your Token in the “Input Token” field.</li>
+                <li>Pick the desired date using the “Input Date” date-picker.</li>
+                <li>Click the <strong class="text-blue-700">“Load Data”</strong> button and wait until you see the notification that data has been inserted.</li>
+                <li>Finally, click the <strong class="text-purple-700">“Tampilkan Data”</strong> button to proceed.</li>
+                <li>You will see the list of data in the table below.</li>
+                <li>Click on the <strong class="text-blue-700">“Kode Booking”</strong> button to show the list of tasks for that booking.</li>
+            </ol>
+        </div>
+
+        <!-- Tables -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- List Data -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="text-lg font-semibold mb-3 text-gray-800">List Data</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse border border-gray-200 text-sm">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-200 px-3 py-2 text-left">No</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Kode Booking</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Nomor Referensi</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">No RM</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="(row, index) in tableData.data"
+                                :key="index"
+                                :class="[
+                                    'hover:bg-gray-50',
+                                    { 'bg-blue-100': kode_booking === row.kode_booking }
+                                ]"
+                            >
+                                <td class="border border-gray-200 px-3 py-2">{{ index + 1 }}</td>
+                                <td class="border border-gray-200 px-3 py-2">
+                                    <button
+                                        @click="showtask(row.kode_booking)"
+                                        class="text-blue-600 underline hover:text-blue-800"
+                                    >
+                                        {{ row.kode_booking }}
+                                    </button>
+                                </td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.nomor_referensi }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.no_rekam_medis }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.status }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- List Task -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="text-lg font-semibold mb-2 text-gray-800">List Task {{ kode_booking }}</h3>
+                <div class="mb-3 text-sm text-gray-700 space-y-1">
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.no_rawat != ''">No Rawat: {{ dataTask.no_rawat }}</h4>
+                    <h4 v-else>No Rawat: {{ dataTask.response[0].no_rawat }}</h4>
+
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.stts != ''">Status Pasien: {{ dataTask.stts }}</h4>
+                    <h4 v-else>Status Pasien: {{ dataTask.response[0].stts }}</h4>
+
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.waktu_dikirim != ''">Task Id 3: {{ dataTask.waktu_dikirim }} </h4>
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.waktu_diterima != ''">Task Id 4: {{ dataTask.waktu_diterima }} <input class="border border-gray-900 rounded-md px-2 py-1" type="date" name="tanggal_waktu_diterima" id="tanggal_waktu_diterima"> <input class="border border-gray-900 rounded-md px-2 py-1" type="time" name="waktu_diterima" id="waktu_diterima"> <button @click="checkin_taskid(4)" class="text-blue-600 underline hover:text-blue-800">Kirim</button></h4>
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.waktu_perawatan != ''">Task Id 5: {{ dataTask.waktu_perawatan }} <input class="border border-gray-900 rounded-md px-2 py-1" type="date" name="tanggal_waktu_perawatan" id="tanggal_waktu_perawatan"> <input class="border border-gray-900 rounded-md px-2 py-1" type="time" name="waktu_perawatan" id="waktu_perawatan"> <button @click="checkin_taskid(5)" class="text-blue-600 underline hover:text-blue-800">Kirim</button></h4>
+                    <h4 v-if="dataTask.message != 'Error' && dataTask.data_sep != ''">Data SEP: {{ dataTask.data_sep }}</h4>
+                    <h4 v-else>Data SEP: {{ dataTask.response[0].data_sep }}</h4>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full border-collapse border border-gray-200 text-sm">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-200 px-3 py-2 text-left">Kode Booking</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Task ID</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Waktu</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Waktu RS</th>
+                                <th class="border border-gray-200 px-3 py-2 text-left">Task Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="dataTask.message != 'Error'" v-for="row in dataTask.task" :key="row.taskid" class="hover:bg-gray-50">
+                                <td class="border border-gray-200 px-3 py-2">{{ row.kodebooking }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.taskid }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.waktu }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.wakturs }}</td>
+                                <td class="border border-gray-200 px-3 py-2">{{ row.taskname }}</td>
+                            </tr>
+                            <tr v-else>
+                                <td colspan="5" class="border border-gray-200 px-3 py-2 text-center text-gray-500">Belum Ada Task ID Terkirim</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script>
+    const baseurl = '/'
+    const url = baseurl + 'list-json/'
+    const checkurl = baseurl + 'list-antri/'
+    const loadurl = baseurl + 'list-table/'
+    const checkintaskidurl = baseurl + 'checkin_taskid/'
+    const initialPage = 0
+    const initialData = ''
+    const totalPage = 0
+    const initialMessage = 'Halaman ' + initialPage
+    const token = ''
+    const tableData = ''
+    const showtaskurl = baseurl + 'show-task/'
+    const dataTask = ''
+    const kode_booking = ''
+    const date = ''
+    let isEnd = false
+    const app = Vue.createApp({
+        data() {
+            return {
+                page: initialPage,
+                message: initialMessage,
+                data: initialData,
+                token: token,
+                date: date,
+                tableData: tableData,
+                dataTask: dataTask,
+                kode_booking: kode_booking
+            }
+        },
+        mounted() {
+            
+        },
+        methods: {
+            autoRefresh() {
+                this.refresh()
+                if (this.page > this.totalPage) {
+                    alert('No more page')
+                    isEnd = true
+                    return
+                } else {
+                    setTimeout(() => {
+                        this.autoRefresh()
+                    }, 80000)
+                }
+            },
+            refresh() {
+                this.page = parseInt(this.page) + 1
+                if (this.page > this.totalPage) {
+                    alert('No more page')
+                    isEnd = true
+                    return
+                } else {
+                    this.message = 'Proses Pengiriman Task Id Halaman ' + this.page
+                    this.data = ''
+                    axios.post(url + this.page, {}, { headers: { 'x-api-key': this.token } }).then(res => {
+                        this.message = 'Proses Pengiriman Task Id Halaman ' + this.page + ' Selesai'
+                        if (res.data == ''){
+                            this.message = 'Selesai Proses Pengiriman Task Id Halaman ' + this.page
+                        } else {
+                            this.data = res.data
+                        }
+                    })
+                }
+            },
+            checkawal(){
+                if (isEnd) {
+                    this.page = 0
+                }
+                this.message = 'Proses Check Awal Halaman ' + this.page
+                this.data = 'Loading ............'
+                axios.post(url + this.page, {}, { headers: { 'x-api-key': this.token } }).then(res => {
+                    this.message = 'Proses Check Awal Halaman ' + this.page + ' Selesai'
+                    if (res.data == ''){
+                        this.message = 'Selesai Proses Check Awal Halaman ' + this.page
+                    } else {
+                        this.data = res.data
+                    }
+                    this.totalPage = res.data[0].total_page
+                }).then(() => {
+                    setTimeout(() => {
+                        this.autoRefresh()
+                    }, 80000)
+                })
+            },
+            loaddate(){
+                this.message = 'Proses Load Data Tanggal ' + this.date
+                this.data = 'Loading ............'
+                axios.post(checkurl + this.date, {}, { headers: { 'x-api-key': this.token } }).then(res => {
+                    this.message = 'Proses Load Data Tanggal ' + this.date + ' Selesai'
+                    this.data = res.data
+                    this.tableData = ''
+                    this.dataTask = ''
+                    isEnd = true
+                })
+            },
+            showdata(){
+                this.message = 'Proses Tampilkan Data Tanggal ' + this.date
+                this.data = 'Loading ............'
+                axios.post(loadurl + this.date, {}, { headers: { 'x-api-key': this.token } }).then(res => {
+                    this.message = 'Proses Tampilkan Data Tanggal ' + this.date + ' Selesai'
+                    this.data = 'Load Data Selesai'
+                    this.tableData = res.data.data[0]
+                })
+            },
+            showtask(kode_booking){
+                this.message = 'Proses Tampilkan Data Task ' + kode_booking
+                this.data = 'Loading ............'
+                this.dataTask = ''
+                axios.post(showtaskurl + kode_booking, {}, { headers: { 'x-api-key': this.token } }).then(res => {
+                    this.message = 'Proses Tampilkan Data Task ' + kode_booking + ' Selesai'
+                    this.data = 'Load Data Selesai'
+                    console.log(res.data.data)
+                    if (res.data.data.message == 'Error'){
+                        this.dataTask = res.data.data
+                    } else {
+                        this.dataTask = res.data.data[0]
+                    }
+                    this.kode_booking = kode_booking
+                    console.log(this.dataTask)
+                })
+            },
+            checkin_taskid(task){
+                this.message = 'Proses Checkin Task Id ' + this.kode_booking
+                this.data = 'Loading ............'
+                let waktu_full = ''
+                if (task == 4){
+                    let tanggal_waktu_diterima = document.getElementById('tanggal_waktu_diterima').value
+                    let waktu_diterima = document.getElementById('waktu_diterima').value
+                    waktu_full = tanggal_waktu_diterima + ' ' + waktu_diterima + ':00'
+                } else if (task == 5){
+                    let tanggal_waktu_perawatan = document.getElementById('tanggal_waktu_perawatan').value
+                    let waktu_perawatan = document.getElementById('waktu_perawatan').value
+                    waktu_full = tanggal_waktu_perawatan + ' ' + waktu_perawatan + ':00'
+                }
+                let data = {
+                    kodebooking: this.kode_booking,
+                    taskid: task,
+                    waktu: waktu_full
+                }
+                console.log(data)
+                axios.post(checkintaskidurl, data, { headers: { 'x-api-key': this.token } }).then(res => {
+                    this.message = 'Proses Checkin Task Id ' + this.kode_booking + ' Selesai'
+                    this.data = 'Load Data Selesai'
+                    console.log(res.data)
+                    if (res.data.message == 'Error'){
+                        this.dataTask = res.data
+                    } else {
+                        this.dataTask = res.data
+                    }
+                    document.getElementById('tanggal_waktu_diterima').value = ''
+                    document.getElementById('waktu_diterima').value = ''
+                    document.getElementById('tanggal_waktu_perawatan').value = ''
+                    document.getElementById('waktu_perawatan').value = ''
+                })
+            },
+        }
+        }
+    )
+    app.mount('#app')
+</script>
+</html>
