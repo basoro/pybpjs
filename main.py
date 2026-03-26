@@ -38,7 +38,6 @@ DB_PORT = int(os.getenv("DB_PORT"))
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
-CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1244,20 +1243,10 @@ def verify_api_key(x_api_key: str = Header(...)):
     
     return x_api_key
 
-origin = [o.strip() for o in CORS_ORIGINS]
-
 app = FastAPI(
     docs_url=None,  # Disable /docs
     redoc_url=None,  # Disable /redoc
     openapi_url=None  # Disable /openapi.json
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origin,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 @app.on_event("startup")
