@@ -1,0 +1,9 @@
+pymysql
+python-dotenv
+lzstring
+requests
+fastapi
+uvicorn[standard]
+pycryptodome
+pandas
+pytz
