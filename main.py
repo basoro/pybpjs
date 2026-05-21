@@ -880,7 +880,15 @@ def bacajson(offset: int = 0):
         keys = consid_antrol+secret_antrol+timestamp
         data = loadtask(timestamp=timestamp,kodebooking=value['kode_booking'])
         print(f"Data Task: {data}")
-        if data['metadata']['code'] == 200:
+        
+        if not data:
+            continue
+        
+        if isinstance(data, dict) and 'metadata' not in data:
+            print("Metadata tidak ditemukan")
+            continue
+        
+        if data.get('metadata', {}).get('code') == 200:
             dec = decrypt(keys,data['response'])
             df = pd.read_json(StringIO(dec))
             print(f"Data Task: {df.to_dict(orient='records')}")
@@ -1117,7 +1125,7 @@ def bacajson(offset: int = 0):
                             batal_mjkn(get_no_rawat['data']['no_rawat'],value['kode_booking'])
                             time.sleep(2)
 
-        if data['metadata']['code'] == 204:
+        if data.get('metadata', {}).get('code') == 204:
             get_data_antrian = select_from_table(table_name="mlite_antrian_referensi",columns=["no_rkm_medis","tanggal_periksa"],where_conditions={"kodebooking":value['kode_booking']}, limit=1,fetch_all=False)
             print(f"get_data_antrian : {get_data_antrian}")
             if get_data_antrian['row_count'] > 0:
