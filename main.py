@@ -929,7 +929,13 @@ def bacajson(offset: int = 0):
                     fetch_all=False
                 )
                 print(f"get_no_rawat : {get_no_rawat}")
-                if get_no_rawat['row_count'] > 0 and get_no_rawat['data']['stts'] != 'Batal':
+                if get_no_rawat['row_count'] == 0:
+                    print("Data reg_periksa tidak ditemukan")
+                elif get_no_rawat['data']['stts'] == 'Batal':
+                    print("Pemeriksaan dibatalkan")
+                    batal_mjkn(get_no_rawat['data']['no_rawat'],value['kode_booking'])
+                    time.sleep(2)
+                else:
                     is_send_3 = False
                     is_send_4 = False
                     print("Pengecekan Task 3")
@@ -1036,10 +1042,6 @@ def bacajson(offset: int = 0):
                             kirim_task_5 = task_kodebooking(value['kode_booking'],5,waktu)
                             print(f"kirim_task 5: {kirim_task_5}")
                         time.sleep(2)
-                if get_no_rawat['data']['stts'] == 'Batal':
-                    print("Pemeriksaan dibatalkan")
-                    batal_mjkn(get_no_rawat['data']['no_rawat'],value['kode_booking'])
-                    time.sleep(2)
             if get_data_antrian['row_count'] == 0:
                 if "k" in value["nomor_referensi"].lower():
                     parameter_search_nya = "noskdp"
@@ -1051,8 +1053,19 @@ def bacajson(offset: int = 0):
                     print(f"parameter_search_nya : {parameter_search_nya}")
                     print("Coba cari di reg_periksa sama bridging_sep")
                     get_sep = select_from_table(table_name="bridging_sep",columns=["no_rawat","tglsep"],where_conditions={"nomr":cari_pasien['data']['no_rkm_medis'],parameter_search_nya:value['nomor_referensi']}, limit=1,fetch_all=False)
+                    if get_sep['row_count'] == 0:
+                        print("Data bridging_sep tidak ditemukan")
+                        continue
                     get_no_rawat = select_from_table(table_name="reg_periksa",columns=["no_rawat","stts"],where_conditions={"no_rkm_medis":cari_pasien['data']['no_rkm_medis'],"tgl_registrasi":get_sep['data']['tglsep'],"kd_poli": {"op": "!=", "val": "IGD01"}}, limit=1,fetch_all=False)
-                    if get_no_rawat['row_count'] > 0 and get_no_rawat['data']['stts'] != 'Batal':
+                    if get_no_rawat['row_count'] == 0:
+                        print("Data reg_periksa tidak ditemukan")
+                        continue
+                    if get_no_rawat['data']['stts'] == 'Batal':
+                        print("Pemeriksaan dibatalkan")
+                        batal_mjkn(get_no_rawat['data']['no_rawat'],value['kode_booking'])
+                        time.sleep(2)
+                        continue
+                    if get_no_rawat['data']['stts'] != 'Batal':
                         is_send_3 = False
                         is_send_4 = False
                         # if counter_task_3 == 0 or counter_task_3 == 1:
